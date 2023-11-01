@@ -41,13 +41,14 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.tcp.rewaed.R
 import java.io.IOException
 import java.util.ArrayList
+import timber.log.Timber
 
 /** Activity demonstrating different image detector features with a still image from camera. */
 @KeepName
 class StillImageActivity : AppCompatActivity() {
   private var preview: ImageView? = null
   private var graphicOverlay: GraphicOverlay? = null
-  private var selectedMode = OBJECT_DETECTION
+  private var selectedMode = TEXT_RECOGNITION_LATIN
   private var selectedSize: String? = SIZE_SCREEN
   private var isLandScape = false
   private var imageUri: Uri? = null
@@ -115,7 +116,7 @@ class StillImageActivity : AppCompatActivity() {
 
   public override fun onResume() {
     super.onResume()
-    Log.d(TAG, "onResume")
+    Timber.tag(TAG).d("onResume")
     createImageProcessor()
     tryReloadAndDetectInImage()
   }
@@ -133,22 +134,7 @@ class StillImageActivity : AppCompatActivity() {
   private fun populateFeatureSelector() {
     val featureSpinner = findViewById<Spinner>(R.id.feature_selector)
     val options: MutableList<String> = ArrayList()
-    options.add(OBJECT_DETECTION)
-    options.add(OBJECT_DETECTION_CUSTOM)
-    options.add(CUSTOM_AUTOML_OBJECT_DETECTION)
-    options.add(FACE_DETECTION)
-    options.add(BARCODE_SCANNING)
-    options.add(IMAGE_LABELING)
-    options.add(IMAGE_LABELING_CUSTOM)
-    options.add(CUSTOM_AUTOML_LABELING)
-    options.add(POSE_DETECTION)
-    options.add(SELFIE_SEGMENTATION)
     options.add(TEXT_RECOGNITION_LATIN)
-    options.add(TEXT_RECOGNITION_CHINESE)
-    options.add(TEXT_RECOGNITION_DEVANAGARI)
-    options.add(TEXT_RECOGNITION_JAPANESE)
-    options.add(TEXT_RECOGNITION_KOREAN)
-    options.add(FACE_MESH_DETECTION)
 
     // Creating adapter for featureSpinner
     val dataAdapter = ArrayAdapter(this, R.layout.spinner_style, options)
@@ -248,7 +234,7 @@ class StillImageActivity : AppCompatActivity() {
   }
 
   private fun tryReloadAndDetectInImage() {
-    Log.d(TAG, "Try reload and detect image")
+    Timber.tag(TAG).d("Try reload and detect image")
     try {
       if (imageUri == null) {
         return
@@ -292,10 +278,11 @@ class StillImageActivity : AppCompatActivity() {
         )
         imageProcessor!!.processBitmap(resizedBitmap, graphicOverlay)
       } else {
-        Log.e(TAG, "Null imageProcessor, please check adb logs for imageProcessor creation error")
+        Timber.tag(TAG)
+          .e("Null imageProcessor, please check adb logs for imageProcessor creation error")
       }
     } catch (e: IOException) {
-      Log.e(TAG, "Error retrieving saved image")
+      Timber.tag(TAG).e("Error retrieving saved image")
       imageUri = null
     }
   }
@@ -329,21 +316,7 @@ class StillImageActivity : AppCompatActivity() {
   companion object {
     private const val TAG = "StillImageActivity"
     private const val OBJECT_DETECTION = "Object Detection"
-    private const val OBJECT_DETECTION_CUSTOM = "Custom Object Detection"
-    private const val CUSTOM_AUTOML_OBJECT_DETECTION = "Custom AutoML Object Detection (Flower)"
-    private const val FACE_DETECTION = "Face Detection"
-    private const val BARCODE_SCANNING = "Barcode Scanning"
     private const val TEXT_RECOGNITION_LATIN = "Text Recognition Latin"
-    private const val TEXT_RECOGNITION_CHINESE = "Text Recognition Chinese"
-    private const val TEXT_RECOGNITION_DEVANAGARI = "Text Recognition Devanagari"
-    private const val TEXT_RECOGNITION_JAPANESE = "Text Recognition Japanese"
-    private const val TEXT_RECOGNITION_KOREAN = "Text Recognition Korean"
-    private const val IMAGE_LABELING = "Image Labeling"
-    private const val IMAGE_LABELING_CUSTOM = "Custom Image Labeling (Birds)"
-    private const val CUSTOM_AUTOML_LABELING = "Custom AutoML Image Labeling (Flower)"
-    private const val POSE_DETECTION = "Pose Detection"
-    private const val SELFIE_SEGMENTATION = "Selfie Segmentation"
-    private const val FACE_MESH_DETECTION = "Face Mesh Detection (Beta)"
 
     private const val SIZE_SCREEN = "w:screen" // Match screen width
     private const val SIZE_1024_768 = "w:1024" // ~1024*768 in a normal ratio

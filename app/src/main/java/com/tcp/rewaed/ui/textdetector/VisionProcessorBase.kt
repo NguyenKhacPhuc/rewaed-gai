@@ -16,19 +16,15 @@
 
 package com.tcp.rewaed.ui.textdetector
 
+import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.content.Context
 import android.graphics.Bitmap
-import android.os.Build.VERSION_CODES
 import android.os.SystemClock
-import android.util.Log
 import android.widget.Toast
 import androidx.annotation.GuardedBy
-import androidx.annotation.RequiresApi
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageProxy
-import com.google.android.gms.tasks.OnFailureListener
-import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.TaskExecutors
 import com.google.android.gms.tasks.Tasks
@@ -38,11 +34,10 @@ import com.google.android.odml.image.MediaMlImageBuilder
 import com.google.android.odml.image.MlImage
 import com.google.mlkit.common.MlKitException
 import com.google.mlkit.vision.common.InputImage
-import java.lang.Math.max
-import java.lang.Math.min
 import java.nio.ByteBuffer
 import java.util.Timer
 import java.util.TimerTask
+import timber.log.Timber
 
 /**
  * Abstract base class for ML Kit frame processors. Subclasses need to implement {@link
@@ -197,7 +192,6 @@ abstract class VisionProcessorBase<T>(context: Context) : VisionImageProcessor {
   }
 
   // -----------------Code for processing live preview frame from CameraX API-----------------------
-  @RequiresApi(VERSION_CODES.LOLLIPOP)
   @ExperimentalGetImage
   override fun processImageProxy(image: ImageProxy, graphicOverlay: GraphicOverlay) {
     val frameStartMs = SystemClock.elapsedRealtime()
@@ -275,6 +269,7 @@ abstract class VisionProcessorBase<T>(context: Context) : VisionImageProcessor {
     )
   }
 
+  @SuppressLint("TimberArgCount")
   private fun setUpListener(
     task: Task<T>,
     graphicOverlay: GraphicOverlay,
@@ -285,88 +280,71 @@ abstract class VisionProcessorBase<T>(context: Context) : VisionImageProcessor {
     val detectorStartMs = SystemClock.elapsedRealtime()
     return task
       .addOnSuccessListener(
-        executor,
-        OnSuccessListener { results: T ->
-          val endMs = SystemClock.elapsedRealtime()
-          val currentFrameLatencyMs = endMs - frameStartMs
-          val currentDetectorLatencyMs = endMs - detectorStartMs
-          if (numRuns >= 500) {
-            resetLatencyStats()
-          }
-          numRuns++
-          frameProcessedInOneSecondInterval++
-          totalFrameMs += currentFrameLatencyMs
-          maxFrameMs = max(currentFrameLatencyMs, maxFrameMs)
-          minFrameMs = min(currentFrameLatencyMs, minFrameMs)
-          totalDetectorMs += currentDetectorLatencyMs
-          maxDetectorMs = max(currentDetectorLatencyMs, maxDetectorMs)
-          minDetectorMs = min(currentDetectorLatencyMs, minDetectorMs)
-
-          // Only log inference info once per second. When frameProcessedInOneSecondInterval is
-          // equal to 1, it means this is the first frame processed during the current second.
-          if (frameProcessedInOneSecondInterval == 1) {
-            Log.d(TAG, "Num of Runs: $numRuns")
-            Log.d(
-              TAG,
-              "Frame latency: max=" +
-                maxFrameMs +
-                ", min=" +
-                minFrameMs +
-                ", avg=" +
-                totalFrameMs / numRuns
-            )
-            Log.d(
-              TAG,
-              "Detector latency: max=" +
-                maxDetectorMs +
-                ", min=" +
-                minDetectorMs +
-                ", avg=" +
-                totalDetectorMs / numRuns
-            )
-            val mi = ActivityManager.MemoryInfo()
-            activityManager.getMemoryInfo(mi)
-            val availableMegs: Long = mi.availMem / 0x100000L
-            Log.d(TAG, "Memory available in system: $availableMegs MB")
-          }
-          graphicOverlay.clear()
-          if (originalCameraImage != null) {
-            graphicOverlay.add(CameraImageGraphic(graphicOverlay, originalCameraImage))
-          }
-          this@VisionProcessorBase.onSuccess(results, graphicOverlay)
-          if (!PreferenceUtils.shouldHideDetectionInfo(graphicOverlay.context)) {
-            graphicOverlay.add(
-              InferenceInfoGraphic(
-                graphicOverlay,
-                currentFrameLatencyMs,
-                currentDetectorLatencyMs,
-                if (shouldShowFps) framesPerSecond else null
-              )
-            )
-          }
-          graphicOverlay.postInvalidate()
+        executor
+      ) { results: T ->
+        val endMs = SystemClock.elapsedRealtime()
+        val currentFrameLatencyMs = endMs - frameStartMs
+        val currentDetectorLatencyMs = endMs - detectorStartMs
+        if (numRuns >= 500) {
+          resetLatencyStats()
         }
-      )
+        numRuns++
+        frameProcessedInOneSecondInterval++
+        totalFrameMs += currentFrameLatencyMs
+        maxFrameMs = currentFrameLatencyMs.coerceAtLeast(maxFrameMs)
+        minFrameMs = currentFrameLatencyMs.coerceAtMost(minFrameMs)
+        totalDetectorMs += currentDetectorLatencyMs
+        maxDetectorMs = currentDetectorLatencyMs.coerceAtLeast(maxDetectorMs)
+        minDetectorMs = currentDetectorLatencyMs.coerceAtMost(minDetectorMs)
+
+        // Only log inference info once per second. When frameProcessedInOneSecondInterval is
+        // equal to 1, it means this is the first frame processed during the current second.
+        if (frameProcessedInOneSecondInterval == 1) {
+          Timber.tag(TAG).d("Num of Runs: %s", numRuns)
+          Timber.d("Frame latency: max=" + maxFrameMs + ", min=" + minFrameMs + ", avg=" + totalFrameMs / numRuns)
+          Timber.tag(TAG)
+            .d("%s%s", "%s, avg=", "%s%s", "%s, min=", "Detector latency: max=%s", maxDetectorMs, minDetectorMs, totalDetectorMs / numRuns)
+          val mi = ActivityManager.MemoryInfo()
+          activityManager.getMemoryInfo(mi)
+          val availableMegs: Long = mi.availMem / 0x100000L
+          Timber.tag(TAG).d("%s MB", "Memory available in system: %s", availableMegs)
+        }
+        graphicOverlay.clear()
+        if (originalCameraImage != null) {
+          graphicOverlay.add(CameraImageGraphic(graphicOverlay, originalCameraImage))
+        }
+        this@VisionProcessorBase.onSuccess(results, graphicOverlay)
+        if (!PreferenceUtils.shouldHideDetectionInfo(graphicOverlay.context)) {
+          graphicOverlay.add(
+            InferenceInfoGraphic(
+              graphicOverlay,
+              currentFrameLatencyMs,
+              currentDetectorLatencyMs,
+              if (shouldShowFps) framesPerSecond else null
+            )
+          )
+        }
+        graphicOverlay.postInvalidate()
+      }
       .addOnFailureListener(
-        executor,
-        OnFailureListener { e: Exception ->
-          graphicOverlay.clear()
-          graphicOverlay.postInvalidate()
-          val error = "Failed to process. Error: " + e.localizedMessage
-          Toast.makeText(
-              graphicOverlay.context,
-              """
+        executor
+      ) { e: Exception ->
+        graphicOverlay.clear()
+        graphicOverlay.postInvalidate()
+        val error = "Failed to process. Error: " + e.localizedMessage
+        Toast.makeText(
+          graphicOverlay.context,
+          """
           $error
           Cause: ${e.cause}
           """.trimIndent(),
-              Toast.LENGTH_SHORT
-            )
-            .show()
-          Log.d(TAG, error)
-          e.printStackTrace()
-          this@VisionProcessorBase.onFailure(e)
-        }
-      )
+          Toast.LENGTH_SHORT
+        )
+          .show()
+        Timber.tag(TAG).d(error)
+        e.printStackTrace()
+        this@VisionProcessorBase.onFailure(e)
+      }
   }
 
   override fun stop() {

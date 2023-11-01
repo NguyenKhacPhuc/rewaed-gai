@@ -21,8 +21,6 @@ import android.content.Intent
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -31,15 +29,17 @@ import android.widget.AdapterView.OnItemClickListener
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.tcp.rewaed.R
+import timber.log.Timber
 
 /** Demo app chooser which allows you pick from all available testing Activities. */
 class ChooserActivity :
   AppCompatActivity(), ActivityCompat.OnRequestPermissionsResultCallback, OnItemClickListener {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    Log.d(TAG, "onCreate")
+    Timber.tag(TAG).d("onCreate")
     setContentView(R.layout.activity_chooser)
 
     // Set up ListView and Adapter
@@ -87,18 +87,12 @@ class ChooserActivity :
   companion object {
     private const val TAG = "ChooserActivity"
     private val CLASSES =
-      if (VERSION.SDK_INT < VERSION_CODES.LOLLIPOP)
-        arrayOf<Class<*>>(
-          LivePreviewActivity::class.java,
-          StillImageActivity::class.java,
-        )
-      else
-        arrayOf<Class<*>>(
-          LivePreviewActivity::class.java,
-          StillImageActivity::class.java,
-          CameraXLivePreviewActivity::class.java,
-          CameraXSourceDemoActivity::class.java
-        )
+      arrayOf<Class<*>>(
+        LivePreviewActivity::class.java,
+        StillImageActivity::class.java,
+        CameraXLivePreviewActivity::class.java,
+        CameraXSourceDemoActivity::class.java
+      )
     private val DESCRIPTION_IDS =
       if (VERSION.SDK_INT < VERSION_CODES.LOLLIPOP)
         intArrayOf(

@@ -19,7 +19,6 @@ package com.tcp.rewaed.ui.textdetector
 import android.content.Intent
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.AdapterView.OnItemSelectedListener
@@ -40,16 +39,15 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.common.annotation.KeepName
 import com.google.mlkit.common.MlKitException
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.tcp.rewaed.R
+import timber.log.Timber
 
 /** Live preview demo app for ML Kit APIs using CameraX. */
 @KeepName
-@RequiresApi(VERSION_CODES.LOLLIPOP)
 class CameraXLivePreviewActivity :
     AppCompatActivity(), OnItemSelectedListener, CompoundButton.OnCheckedChangeListener {
 
@@ -67,7 +65,7 @@ class CameraXLivePreviewActivity :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "onCreate")
+        Timber.tag(TAG).d("onCreate")
         if (savedInstanceState != null) {
             selectedModel = savedInstanceState.getString(STATE_SELECTED_MODEL, TEXT_RECOGNITION_LATIN)
         }
@@ -75,11 +73,11 @@ class CameraXLivePreviewActivity :
         setContentView(R.layout.activity_vision_camerax_live_preview)
         previewView = findViewById(R.id.preview_view)
         if (previewView == null) {
-            Log.d(TAG, "previewView is null")
+            Timber.tag(TAG).d("previewView is null")
         }
         graphicOverlay = findViewById(R.id.graphic_overlay)
         if (graphicOverlay == null) {
-            Log.d(TAG, "graphicOverlay is null")
+            Timber.tag(TAG).d("graphicOverlay is null")
         }
         val spinner = findViewById<Spinner>(R.id.spinner)
         val options: MutableList<String> = ArrayList()
@@ -121,7 +119,7 @@ class CameraXLivePreviewActivity :
         // An item was selected. You can retrieve the selected item using
         // parent.getItemAtPosition(pos)
         selectedModel = parent?.getItemAtPosition(pos).toString()
-        Log.d(TAG, "Selected model: $selectedModel")
+        Timber.tag(TAG).d("Selected model: %s", selectedModel)
         bindAnalysisUseCase()
     }
 
@@ -142,7 +140,7 @@ class CameraXLivePreviewActivity :
         val newCameraSelector = CameraSelector.Builder().requireLensFacing(newLensFacing).build()
         try {
             if (cameraProvider!!.hasCamera(newCameraSelector)) {
-                Log.d(TAG, "Set facing to " + newLensFacing)
+                Timber.tag(TAG).d("Set facing to %s", newLensFacing)
                 lensFacing = newLensFacing
                 cameraSelector = newCameraSelector
                 bindAllCameraUseCases()
@@ -201,7 +199,7 @@ class CameraXLivePreviewActivity :
             builder.setTargetResolution(targetResolution)
         }
         previewUseCase = builder.build()
-        previewUseCase!!.setSurfaceProvider(previewView!!.getSurfaceProvider())
+        previewUseCase!!.setSurfaceProvider(previewView!!.surfaceProvider)
         camera =
             cameraProvider!!.bindToLifecycle(/* lifecycleOwner= */ this, cameraSelector!!, previewUseCase)
     }
@@ -230,26 +228,33 @@ class CameraXLivePreviewActivity :
         analysisUseCase?.setAnalyzer(
             // imageProcessor.processImageProxy will use another thread to run the detection underneath,
             // thus we can just runs the analyzer itself on main thread.
-            ContextCompat.getMainExecutor(this),
-            ImageAnalysis.Analyzer { imageProxy: ImageProxy ->
-                if (needUpdateGraphicOverlayImageSourceInfo) {
-                    val isImageFlipped = lensFacing == CameraSelector.LENS_FACING_FRONT
-                    val rotationDegrees = imageProxy.imageInfo.rotationDegrees
-                    if (rotationDegrees == 0 || rotationDegrees == 180) {
-                        graphicOverlay!!.setImageSourceInfo(imageProxy.width, imageProxy.height, isImageFlipped)
-                    } else {
-                        graphicOverlay!!.setImageSourceInfo(imageProxy.height, imageProxy.width, isImageFlipped)
-                    }
-                    needUpdateGraphicOverlayImageSourceInfo = false
+            ContextCompat.getMainExecutor(this)
+        ) { imageProxy: ImageProxy ->
+            if (needUpdateGraphicOverlayImageSourceInfo) {
+                val isImageFlipped = lensFacing == CameraSelector.LENS_FACING_FRONT
+                val rotationDegrees = imageProxy.imageInfo.rotationDegrees
+                if (rotationDegrees == 0 || rotationDegrees == 180) {
+                    graphicOverlay!!.setImageSourceInfo(
+                        imageProxy.width,
+                        imageProxy.height,
+                        isImageFlipped
+                    )
+                } else {
+                    graphicOverlay!!.setImageSourceInfo(
+                        imageProxy.height,
+                        imageProxy.width,
+                        isImageFlipped
+                    )
                 }
-                try {
-                    imageProcessor!!.processImageProxy(imageProxy, graphicOverlay)
-                } catch (e: MlKitException) {
-                    Log.e(TAG, "Failed to process image. Error: " + e.localizedMessage)
-                    Toast.makeText(applicationContext, e.localizedMessage, Toast.LENGTH_SHORT).show()
-                }
+                needUpdateGraphicOverlayImageSourceInfo = false
             }
-        )
+            try {
+                imageProcessor!!.processImageProxy(imageProxy, graphicOverlay)
+            } catch (e: MlKitException) {
+                Timber.tag(TAG).e("Failed to process image. Error: %s", e.localizedMessage)
+                Toast.makeText(applicationContext, e.localizedMessage, Toast.LENGTH_SHORT).show()
+            }
+        }
         cameraProvider!!.bindToLifecycle(/* lifecycleOwner= */ this, cameraSelector!!, analysisUseCase)
     }
 

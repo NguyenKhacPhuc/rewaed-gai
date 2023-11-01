@@ -45,10 +45,10 @@ import com.google.mlkit.vision.objects.custom.CustomObjectDetectorOptions
 import com.tcp.rewaed.R
 import java.util.Objects
 import kotlin.collections.List
+import timber.log.Timber
 
 /** Live preview demo app for ML Kit APIs using CameraXSource API. */
 @KeepName
-@RequiresApi(VERSION_CODES.LOLLIPOP)
 class CameraXSourceDemoActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener {
   private var previewView: PreviewView? = null
   private var graphicOverlay: GraphicOverlay? = null
@@ -60,15 +60,15 @@ class CameraXSourceDemoActivity : AppCompatActivity(), CompoundButton.OnCheckedC
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    Log.d(TAG, "onCreate")
+    Timber.tag(TAG).d("onCreate")
     setContentView(R.layout.activity_vision_cameraxsource_demo)
     previewView = findViewById(R.id.preview_view)
     if (previewView == null) {
-      Log.d(TAG, "previewView is null")
+      Timber.tag(TAG).d("previewView is null")
     }
     graphicOverlay = findViewById(R.id.graphic_overlay)
     if (graphicOverlay == null) {
-      Log.d(TAG, "graphicOverlay is null")
+      Timber.tag(TAG).d("graphicOverlay is null")
     }
     val facingSwitch = findViewById<ToggleButton>(R.id.facing_switch)
     facingSwitch.setOnCheckedChangeListener(this)
@@ -137,14 +137,14 @@ class CameraXSourceDemoActivity : AppCompatActivity(), CompoundButton.OnCheckedC
         localModel
       )
     val objectDetector: ObjectDetector = ObjectDetection.getClient(customObjectDetectorOptions!!)
-    var detectionTaskCallback: DetectionTaskCallback<List<DetectedObject>> =
+    val detectionTaskCallback: DetectionTaskCallback<List<DetectedObject>> =
       DetectionTaskCallback<List<DetectedObject>> { detectionTask ->
         detectionTask
           .addOnSuccessListener { results -> onDetectionTaskSuccess(results) }
           .addOnFailureListener { e -> onDetectionTaskFailure(e) }
       }
     val builder: CameraSourceConfig.Builder =
-      CameraSourceConfig.Builder(getApplicationContext(), objectDetector!!, detectionTaskCallback)
+      CameraSourceConfig.Builder(getApplicationContext(), objectDetector, detectionTaskCallback)
         .setFacing(lensFacing)
     targetResolution =
       PreferenceUtils.getCameraXTargetResolution(getApplicationContext(), lensFacing)
@@ -161,8 +161,8 @@ class CameraXSourceDemoActivity : AppCompatActivity(), CompoundButton.OnCheckedC
     if (needUpdateGraphicOverlayImageSourceInfo) {
       val size: Size = cameraXSource!!.getPreviewSize()!!
       if (size != null) {
-        Log.d(TAG, "preview width: " + size.width)
-        Log.d(TAG, "preview height: " + size.height)
+        Timber.tag(TAG).d("preview width: %s", size.width)
+        Timber.tag(TAG).d("preview height: %s", size.height)
         val isImageFlipped =
           cameraXSource!!.getCameraFacing() == CameraSourceConfig.CAMERA_FACING_FRONT
         if (isPortraitMode) {
@@ -174,10 +174,10 @@ class CameraXSourceDemoActivity : AppCompatActivity(), CompoundButton.OnCheckedC
         }
         needUpdateGraphicOverlayImageSourceInfo = false
       } else {
-        Log.d(TAG, "previewsize is null")
+        Timber.tag(TAG).d("previewsize is null")
       }
     }
-    Log.v(TAG, "Number of object been detected: " + results.size)
+    Timber.tag(TAG).v("Number of object been detected: %s", results.size)
     for (`object` in results) {
       graphicOverlay!!.add(ObjectGraphic(graphicOverlay!!, `object`))
     }
@@ -198,7 +198,7 @@ class CameraXSourceDemoActivity : AppCompatActivity(), CompoundButton.OnCheckedC
         Toast.LENGTH_SHORT
       )
       .show()
-    Log.d(TAG, error)
+    Timber.tag(TAG).d(error)
   }
 
   private val isPortraitMode: Boolean

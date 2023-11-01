@@ -27,7 +27,6 @@ import com.tcp.rewaed.R;
 
 
 /** Configures CameraXSource live preview demo settings. */
-@RequiresApi(VERSION_CODES.LOLLIPOP)
 public class CameraXSourceDemoPreferenceFragment extends CameraXLivePreviewPreferenceFragment {
 
   @Override

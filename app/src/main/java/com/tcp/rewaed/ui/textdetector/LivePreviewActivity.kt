@@ -41,6 +41,7 @@ import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.tcp.rewaed.R
 import java.io.IOException
+import timber.log.Timber
 
 /** Live preview demo for ML Kit APIs. */
 @KeepName
@@ -50,41 +51,26 @@ class LivePreviewActivity :
     private var cameraSource: CameraSource? = null
     private var preview: CameraSourcePreview? = null
     private var graphicOverlay: GraphicOverlay? = null
-    private var selectedModel = OBJECT_DETECTION
+    private var selectedModel = TEXT_RECOGNITION_LATIN
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "onCreate")
+        Timber.tag(TAG).d("onCreate")
         setContentView(R.layout.activity_vision_live_preview)
 
         preview = findViewById(R.id.preview_view)
         if (preview == null) {
-            Log.d(TAG, "Preview is null")
+            Timber.tag(TAG).d("Preview is null")
         }
 
         graphicOverlay = findViewById(R.id.graphic_overlay)
         if (graphicOverlay == null) {
-            Log.d(TAG, "graphicOverlay is null")
+            Timber.tag(TAG).d("graphicOverlay is null")
         }
 
         val spinner = findViewById<Spinner>(R.id.spinner)
         val options: MutableList<String> = ArrayList()
-        options.add(OBJECT_DETECTION)
-        options.add(OBJECT_DETECTION_CUSTOM)
-        options.add(CUSTOM_AUTOML_OBJECT_DETECTION)
-        options.add(FACE_DETECTION)
-        options.add(BARCODE_SCANNING)
-        options.add(IMAGE_LABELING)
-        options.add(IMAGE_LABELING_CUSTOM)
-        options.add(CUSTOM_AUTOML_LABELING)
-        options.add(POSE_DETECTION)
-        options.add(SELFIE_SEGMENTATION)
         options.add(TEXT_RECOGNITION_LATIN)
-        options.add(TEXT_RECOGNITION_CHINESE)
-        options.add(TEXT_RECOGNITION_DEVANAGARI)
-        options.add(TEXT_RECOGNITION_JAPANESE)
-        options.add(TEXT_RECOGNITION_KOREAN)
-        options.add(FACE_MESH_DETECTION)
 
         // Creating adapter for spinner
         val dataAdapter = ArrayAdapter(this, R.layout.spinner_style, options)
@@ -116,7 +102,7 @@ class LivePreviewActivity :
         // An item was selected. You can retrieve the selected item using
         // parent.getItemAtPosition(pos)
         selectedModel = parent?.getItemAtPosition(pos).toString()
-        Log.d(TAG, "Selected model: $selectedModel")
+        Timber.tag(TAG).d("Selected model: %s", selectedModel)
         preview?.stop()
         createCameraSource(selectedModel)
         startCameraSource()
@@ -127,7 +113,7 @@ class LivePreviewActivity :
     }
 
     override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
-        Log.d(TAG, "Set facing")
+        Timber.tag(TAG).d("Set facing")
         if (cameraSource != null) {
             if (isChecked) {
                 cameraSource?.setFacing(CameraSource.CAMERA_FACING_FRONT)
@@ -144,7 +130,7 @@ class LivePreviewActivity :
         if (cameraSource == null) {
             cameraSource = CameraSource(this, graphicOverlay)
         }
-        Log.i(TAG, "Using on-device Text recognition Processor for Latin and Latin")
+        Timber.tag(TAG).i("Using on-device Text recognition Processor for Latin and Latin")
         cameraSource!!.setMachineLearningFrameProcessor(
             TextRecognitionProcessor(this, TextRecognizerOptions.Builder().build())
         )
@@ -160,14 +146,14 @@ class LivePreviewActivity :
         if (cameraSource != null) {
             try {
                 if (preview == null) {
-                    Log.d(TAG, "resume: Preview is null")
+                    Timber.tag(TAG).d("resume: Preview is null")
                 }
                 if (graphicOverlay == null) {
-                    Log.d(TAG, "resume: graphOverlay is null")
+                    Timber.tag(TAG).d("resume: graphOverlay is null")
                 }
                 preview!!.start(cameraSource, graphicOverlay)
             } catch (e: IOException) {
-                Log.e(TAG, "Unable to start camera source.", e)
+                Timber.tag(TAG).e(e, "Unable to start camera source.")
                 cameraSource!!.release()
                 cameraSource = null
             }
@@ -176,7 +162,7 @@ class LivePreviewActivity :
 
     public override fun onResume() {
         super.onResume()
-        Log.d(TAG, "onResume")
+        Timber.tag(TAG).d("onResume")
         createCameraSource(selectedModel)
         startCameraSource()
     }
@@ -195,22 +181,7 @@ class LivePreviewActivity :
     }
 
     companion object {
-        private const val OBJECT_DETECTION = "Object Detection"
-        private const val OBJECT_DETECTION_CUSTOM = "Custom Object Detection"
-        private const val CUSTOM_AUTOML_OBJECT_DETECTION = "Custom AutoML Object Detection (Flower)"
-        private const val FACE_DETECTION = "Face Detection"
         private const val TEXT_RECOGNITION_LATIN = "Text Recognition Latin"
-        private const val TEXT_RECOGNITION_CHINESE = "Text Recognition Chinese"
-        private const val TEXT_RECOGNITION_DEVANAGARI = "Text Recognition Devanagari"
-        private const val TEXT_RECOGNITION_JAPANESE = "Text Recognition Japanese"
-        private const val TEXT_RECOGNITION_KOREAN = "Text Recognition Korean"
-        private const val BARCODE_SCANNING = "Barcode Scanning"
-        private const val IMAGE_LABELING = "Image Labeling"
-        private const val IMAGE_LABELING_CUSTOM = "Custom Image Labeling (Birds)"
-        private const val CUSTOM_AUTOML_LABELING = "Custom AutoML Image Labeling (Flower)"
-        private const val POSE_DETECTION = "Pose Detection"
-        private const val SELFIE_SEGMENTATION = "Selfie Segmentation"
-        private const val FACE_MESH_DETECTION = "Face Mesh Detection (Beta)"
 
         private const val TAG = "LivePreviewActivity"
     }
