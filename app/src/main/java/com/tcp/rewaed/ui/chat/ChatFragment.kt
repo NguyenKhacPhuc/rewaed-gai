@@ -10,8 +10,11 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.speech.RecognizerIntent
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -28,10 +31,15 @@ import com.tcp.rewaed.ui.textdetector.ChooserActivity
 import com.tcp.rewaed.ui.viewmodels.ChatViewModel
 import com.tcp.rewaed.utils.*
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.ArrayList
+import java.util.*
 
 @AndroidEntryPoint
-class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>() {
+class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>(),
+    TextToSpeech.OnInitListener {
+
+    private var textToSpeech: TextToSpeech? = null
+    private var isNeedToSpeakAnswer: Boolean = false
+
     companion object {
         private const val PERMISSION_REQUESTS = 1
         private val REQUIRED_RUNTIME_PERMISSIONS =
@@ -41,6 +49,7 @@ class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>() {
                 Manifest.permission.READ_EXTERNAL_STORAGE
             )
     }
+
     private val chatListAdapter by lazy {
         ChatListAdapter(mViewModel)
     }
@@ -49,6 +58,32 @@ class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        textToSpeech = TextToSpeech(activity, this)
+        textToSpeech?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+            override fun onStart(utteranceId: String?) {
+                Log.d("ChatFragment", "textToSpeech onStart")
+                activity?.runOnUiThread {
+                    mViewBinding.animationView.visibility = View.VISIBLE
+                    mViewBinding.imgStopSpeaking.visibility = View.VISIBLE
+                    mViewBinding.animationView.playAnimation()
+                }
+            }
+
+            override fun onDone(utteranceId: String?) {
+                Log.d("ChatFragment", "textToSpeech onDone")
+                isNeedToSpeakAnswer = false
+                activity?.runOnUiThread {
+                    mViewBinding.animationView.visibility = View.INVISIBLE
+                    mViewBinding.imgStopSpeaking.visibility = View.INVISIBLE
+                    mViewBinding.animationView.pauseAnimation()
+                }
+            }
+
+            override fun onError(utteranceId: String?) {
+                Log.e("ChatFragment", "textToSpeech onError")
+            }
+
+        })
         mViewModel.maxTokensLength =
             SharedPref.getStringPref(requireContext(), SharedPref.KEY_TOKEN_LENGTH).toInt()
         chatListAdapter.addItems(mViewModel.chatMessageList)
@@ -84,6 +119,7 @@ class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>() {
                 layoutManager = LinearLayoutManager(requireContext())
                 adapter = chatListAdapter
             }
+
             fabSend.setOnClickListener {
                 requireContext().dismissKeyboard(it)
                 if (SharedPref.getStringPref(requireContext(), SharedPref.KEY_API_KEY)
@@ -109,6 +145,7 @@ class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>() {
                 mViewModel.postMessage()
                 etMessage.text?.clear()
             }
+
             fabImageToText.setOnClickListener {
                 if (!allRuntimePermissionsGranted()) {
                     getRuntimePermissions()
@@ -120,13 +157,26 @@ class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>() {
                     )
                 startActivity(intent)
             }
+
             fabVoice.setOnClickListener {
+                isNeedToSpeakAnswer = true
                 requireContext().dismissKeyboard(it)
                 val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
                 try {
                     startActivityForResult(intent, 1)
                 } catch (a: ActivityNotFoundException) {
                     Toast.makeText(activity, "Error ${a.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            imgStopSpeaking.setOnClickListener {
+                Log.d("ChatFragment", "textToSpeech onDone")
+                textToSpeech?.stop()
+                isNeedToSpeakAnswer = false
+                activity?.runOnUiThread {
+                    mViewBinding.animationView.visibility = View.INVISIBLE
+                    mViewBinding.imgStopSpeaking.visibility = View.INVISIBLE
+                    mViewBinding.animationView.pauseAnimation()
                 }
             }
         }
@@ -149,6 +199,9 @@ class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>() {
                                 role = ChatRole.ASSISTANT.name.lowercase()
                             )
                         )
+                        if (isNeedToSpeakAnswer) {
+                            convertTextToSpeech(state.data.choices.first().message.content)
+                        }
                         chatListAdapter.addItems(mViewModel.chatMessageList)
                         mViewBinding.apply {
                             rvChatList.scrollToPosition(
@@ -211,6 +264,7 @@ class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>() {
             alertDialog.show()
         }
     }
+
     private fun allRuntimePermissionsGranted(): Boolean {
         for (permission in REQUIRED_RUNTIME_PERMISSIONS) {
             permission?.let {
@@ -242,12 +296,36 @@ class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>() {
     }
 
     private fun isPermissionGranted(context: Context, permission: String): Boolean {
-        if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+        if (ContextCompat.checkSelfPermission(
+                context,
+                permission
+            ) == PackageManager.PERMISSION_GRANTED
         ) {
             Log.i("Permission", "Permission granted: $permission")
             return true
         }
         Log.i("Permission", "Permission NOT granted: $permission")
         return false
+    }
+
+    private fun convertTextToSpeech(content: String) {
+        textToSpeech?.speak(content, TextToSpeech.QUEUE_FLUSH, null, "")
+    }
+
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            val res = textToSpeech?.setLanguage(Locale.ENGLISH)
+            if (res == TextToSpeech.LANG_NOT_SUPPORTED || res == TextToSpeech.LANG_MISSING_DATA) {
+                Log.e("TTS", "language not supported!")
+            }
+        } else {
+            Log.e("TTS", "TTS Failed")
+        }
+    }
+
+    override fun onDestroy() {
+        textToSpeech?.stop()
+        textToSpeech?.shutdown()
+        super.onDestroy()
     }
 }
