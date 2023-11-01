@@ -15,7 +15,7 @@
             android:id="@+id/action_splashFragment_to_chatFragment"
             app:destination="@id/chatFragment"
             app:popUpTo="@id/splashFragment"
-            app:popUpToInclusive="true"/>
+            app:popUpToInclusive="true" />
 
     </fragment>
 

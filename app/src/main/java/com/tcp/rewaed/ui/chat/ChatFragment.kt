@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.text.Editable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -15,13 +16,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.tcp.rewaed.R
 import com.tcp.rewaed.data.models.ChatPostBody
 import com.tcp.rewaed.databinding.FragmentChatBinding
+import com.tcp.rewaed.ui.activities.MainActivity
 import com.tcp.rewaed.ui.adapters.ChatListAdapter
 import com.tcp.rewaed.ui.base.BaseFragment
 import com.tcp.rewaed.ui.textdetector.ChooserActivity
+import com.tcp.rewaed.ui.textdetector.TextRecognitionProcessor
 import com.tcp.rewaed.ui.viewmodels.ChatViewModel
 import com.tcp.rewaed.utils.*
 import dagger.hilt.android.AndroidEntryPoint
@@ -41,7 +45,6 @@ class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>() {
     private val chatListAdapter by lazy {
         ChatListAdapter(mViewModel)
     }
-
     override val mViewModel: ChatViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -117,6 +120,8 @@ class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>() {
                     )
                 startActivity(intent)
             }
+            //Another stupid idea, but again, nobody gonna see this =))))))))))))
+            etMessage.setText((this@ChatFragment.activity as MainActivity).resultReadImage)
         }
     }
 
@@ -197,7 +202,7 @@ class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>() {
     private fun getRuntimePermissions() {
         val permissionsToRequest = ArrayList<String>()
         for (permission in REQUIRED_RUNTIME_PERMISSIONS) {
-            permission?.let {
+            permission.let {
                 if (!isPermissionGranted(this@ChatFragment.requireActivity(), it)) {
                     permissionsToRequest.add(permission)
                 }
