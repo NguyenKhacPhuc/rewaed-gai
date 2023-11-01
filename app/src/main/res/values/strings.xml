@@ -36,7 +36,7 @@
 
     <string name="first_row">What is the purpose of this app?</string>
     <string name="second_row">What exactly is OpenAI?</string>
-    <string name="third_row">Why do I require an API key to communicate with Anywhere GPT?</string>
+    <string name="third_row">Why do I require an API key to communicate with Rewaed?</string>
     <string name="fourth_row">What if I do not add an API key to the app?</string>
     <string name="fifth_row">Is it necessary to pay for the API key?</string>
     <string name="sixth_row">Do you gather any information from this app?</string>
