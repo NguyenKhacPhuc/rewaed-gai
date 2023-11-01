@@ -1,13 +1,19 @@
 package com.tcp.rewaed.ui.chat
 
+import android.Manifest
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.tcp.rewaed.R
@@ -15,13 +21,23 @@ import com.tcp.rewaed.data.models.ChatPostBody
 import com.tcp.rewaed.databinding.FragmentChatBinding
 import com.tcp.rewaed.ui.adapters.ChatListAdapter
 import com.tcp.rewaed.ui.base.BaseFragment
+import com.tcp.rewaed.ui.textdetector.ChooserActivity
 import com.tcp.rewaed.ui.viewmodels.ChatViewModel
 import com.tcp.rewaed.utils.*
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.ArrayList
 
 @AndroidEntryPoint
 class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>() {
-
+    companion object {
+        private const val PERMISSION_REQUESTS = 1
+        private val REQUIRED_RUNTIME_PERMISSIONS =
+            arrayOf(
+                Manifest.permission.CAMERA,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            )
+    }
     private val chatListAdapter by lazy {
         ChatListAdapter(mViewModel)
     }
@@ -90,7 +106,17 @@ class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>() {
                 mViewModel.postMessage()
                 etMessage.text?.clear()
             }
-
+            fabImageToText.setOnClickListener {
+                if (!allRuntimePermissionsGranted()) {
+                    getRuntimePermissions()
+                }
+                val intent =
+                    Intent(
+                        this@ChatFragment.requireActivity(),
+                        ChooserActivity::class.java
+                    )
+                startActivity(intent)
+            }
         }
     }
 
@@ -157,6 +183,43 @@ class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>() {
             alertDialog.show()
         }
     }
+    private fun allRuntimePermissionsGranted(): Boolean {
+        for (permission in REQUIRED_RUNTIME_PERMISSIONS) {
+            permission?.let {
+                if (!isPermissionGranted(this@ChatFragment.requireActivity(), it)) {
+                    return false
+                }
+            }
+        }
+        return true
+    }
 
+    private fun getRuntimePermissions() {
+        val permissionsToRequest = ArrayList<String>()
+        for (permission in REQUIRED_RUNTIME_PERMISSIONS) {
+            permission?.let {
+                if (!isPermissionGranted(this@ChatFragment.requireActivity(), it)) {
+                    permissionsToRequest.add(permission)
+                }
+            }
+        }
 
+        if (permissionsToRequest.isNotEmpty()) {
+            ActivityCompat.requestPermissions(
+                this@ChatFragment.requireActivity(),
+                permissionsToRequest.toTypedArray(),
+                PERMISSION_REQUESTS
+            )
+        }
+    }
+
+    private fun isPermissionGranted(context: Context, permission: String): Boolean {
+        if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.i("Permission", "Permission granted: $permission")
+            return true
+        }
+        Log.i("Permission", "Permission NOT granted: $permission")
+        return false
+    }
 }
