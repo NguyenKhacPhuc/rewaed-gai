@@ -1,6 +1,7 @@
 package com.tcp.rewaed.ui.textdetector
 
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import com.google.android.gms.tasks.Task
 import com.google.mlkit.vision.common.InputImage
@@ -8,6 +9,7 @@ import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.TextRecognizerOptionsInterface
+import com.tcp.rewaed.ui.activities.MainActivity
 import timber.log.Timber
 
 /** Processor for the text detector demo. */
@@ -42,6 +44,12 @@ class TextRecognitionProcessor(
         showConfidence
       )
     )
+    val intent = Intent(context, MainActivity::class.java)
+    Log.d("#PhucNK1 Text", text.text)
+    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+    intent.putExtra(IS_FROM_TEXT_REG, true)
+    intent.putExtra(TEXT_REG_VALUE, text.text)
+    context.startActivity(intent)
   }
 
   override fun onFailure(e: Exception) {
@@ -50,6 +58,8 @@ class TextRecognitionProcessor(
 
   companion object {
     private const val TAG = "TextRecProcessor"
+    const val IS_FROM_TEXT_REG = "text_reg"
+    const val TEXT_REG_VALUE = "text_reg_value"
     private fun logExtrasForTesting(text: Text?) {
       if (text != null) {
         Timber.tag(MANUAL_TESTING_LOG).v("Detected text has : " + text.textBlocks.size + " blocks")
