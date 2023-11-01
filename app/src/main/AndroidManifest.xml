@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.shashank.anywheregpt">
+    package="com.tcp.rewaed">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -25,7 +25,7 @@
     </queries>
 
     <application
-        android:name=".app.AnywhereGPTApp"
+        android:name="com.tcp.rewaed.app.RewaedApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -36,7 +36,7 @@
         tools:targetApi="31">
 
         <activity
-            android:name=".ui.activities.MainActivity"
+            android:name="com.tcp.rewaed.ui.activities.MainActivity"
             android:exported="true"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AnywhereGPT"
@@ -49,7 +49,7 @@
         </activity>
 
         <activity
-            android:name=".ui.activities.AnywhereDialogActivity"
+            android:name="com.tcp.rewaed.ui.activities.AnywhereDialogActivity"
             android:excludeFromRecents="true"
             android:exported="true"
             android:screenOrientation="portrait"

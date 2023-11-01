@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/splashFragment"
-        android:name="com.shashank.anywheregpt.ui.splash.SplashFragment"
+        android:name="com.tcp.rewaed.ui.splash.SplashFragment"
         android:label="SplashFragment"
         tools:layout="@layout/fragment_splash">
 
@@ -21,7 +21,7 @@
 
     <fragment
         android:id="@+id/chatFragment"
-        android:name="com.shashank.anywheregpt.ui.chat.ChatFragment"
+        android:name="com.tcp.rewaed.ui.chat.ChatFragment"
         android:label="ChatFragment"
         tools:layout="@layout/fragment_chat">
 
@@ -44,13 +44,13 @@
 
     <fragment
         android:id="@+id/settingsFragment"
-        android:name="com.shashank.anywheregpt.ui.settings.SettingsFragment"
+        android:name="com.tcp.rewaed.ui.settings.SettingsFragment"
         android:label="SettingsFragment"
         tools:layout="@layout/fragment_settings" />
 
     <fragment
         android:id="@+id/faqFragment"
-        android:name="com.shashank.anywheregpt.ui.settings.FaqFragment"
+        android:name="com.tcp.rewaed.ui.settings.FaqFragment"
         android:label="FaqFragment"
         tools:layout="@layout/fragment_faq" />
 

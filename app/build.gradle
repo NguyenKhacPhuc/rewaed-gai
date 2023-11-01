@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace 'com.shashank.anywheregpt'
+    namespace 'com.tcp.rewaed'
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.shashank.anywheregpt"
+        applicationId "com.tcp.rewaed"
         minSdk 23
         targetSdk 33
         versionCode 1
