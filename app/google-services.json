@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "268250568346",
+    "project_id": "image-to-text-a60c3",
+    "storage_bucket": "image-to-text-a60c3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:268250568346:android:af0ffe25dcdf0050ee7123",
+        "android_client_info": {
+          "package_name": "com.tcp.rewaed"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvBCvjWO7285tJCXqAqfjVHWwjPzOfslY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
