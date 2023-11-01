@@ -2,15 +2,18 @@ package com.tcp.rewaed.ui.chat
 
 import android.Manifest
 import android.app.AlertDialog
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.speech.RecognizerIntent
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -117,6 +120,15 @@ class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>() {
                     )
                 startActivity(intent)
             }
+            fabVoice.setOnClickListener {
+                requireContext().dismissKeyboard(it)
+                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+                try {
+                    startActivityForResult(intent, 1)
+                } catch (a: ActivityNotFoundException) {
+                    Toast.makeText(activity, "Error ${a.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
@@ -156,6 +168,22 @@ class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>() {
                 }
             }
         })
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            1 -> {
+                if (resultCode === AppCompatActivity.RESULT_OK && null != android.R.attr.data) {
+                    val result: ArrayList<String> =
+                        data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)!!
+                    val textOutput = result[0]
+                    mViewBinding.etMessage.text?.clear()
+                    mViewBinding.etMessage.text?.append(textOutput)
+                    mViewBinding.fabSend.performClick()
+                }
+            }
+        }
     }
 
     private fun allowOverlayPermission() {

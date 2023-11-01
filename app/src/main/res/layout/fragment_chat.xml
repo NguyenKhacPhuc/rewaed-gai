@@ -54,10 +54,25 @@
                 android:textColorHint="@color/grey_300"
                 android:textSize="@dimen/_12sdp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/fabImageToText"
+                app:layout_constraintEnd_toStartOf="@+id/fab_voice"
                 app:layout_constraintHorizontal_bias="0.909"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fab_voice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="2dp"
+                android:backgroundTint="@color/midnight_blue"
+                android:src="@drawable/ic_voice"
+                app:borderWidth="0dp"
+                app:fabSize="mini"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/fabImageToText"
+                app:layout_constraintStart_toEndOf="@id/et_message"
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@color/colorAccent" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/fab_send"
