@@ -10,12 +10,15 @@ import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.TextRecognizerOptionsInterface
 import com.tcp.rewaed.ui.activities.MainActivity
+import java.sql.Struct
 import timber.log.Timber
 
 /** Processor for the text detector demo. */
 class TextRecognitionProcessor(
   private val context: Context,
-  textRecognizerOptions: TextRecognizerOptionsInterface
+  textRecognizerOptions: TextRecognizerOptionsInterface,
+  private val isLiveActivity: Boolean = false,
+  private val getResult: ((String) -> Unit)? = null
 ) : VisionProcessorBase<Text>(context) {
   private val textRecognizer: TextRecognizer = TextRecognition.getClient(textRecognizerOptions)
   private val shouldGroupRecognizedTextInBlocks: Boolean =
@@ -44,7 +47,9 @@ class TextRecognitionProcessor(
         showConfidence
       )
     )
-    if (text.text.isNotEmpty()) {
+    getResult?.invoke(text.text)
+    if (text.text.isNotEmpty() && !isLiveActivity) {
+      Log.d("#PhucNK1 ", "running")
       val intent = Intent(context, MainActivity::class.java)
       intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
       intent.putExtra(IS_FROM_TEXT_REG, true)
