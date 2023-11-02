@@ -28,7 +28,7 @@ class LivePreviewActivity :
     private var graphicOverlay: GraphicOverlay? = null
     private var selectedModel = TEXT_RECOGNITION_LATIN
     private val imageProcessor: TextRecognitionProcessor by lazy {
-        TextRecognitionProcessor(this, TextRecognizerOptions.Builder().build())
+        TextRecognitionProcessor(this, TextRecognizerOptions.Builder().build(), true)
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
