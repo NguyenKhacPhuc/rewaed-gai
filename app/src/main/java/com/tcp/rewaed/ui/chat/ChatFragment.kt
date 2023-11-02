@@ -183,7 +183,7 @@ class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>(),
                 }
             }
             //Another stupid idea, but again, nobody gonna see this =))))))))))))
-            etMessage.setText((this@ChatFragment.activity as MainActivity).resultReadImage)
+            mViewBinding.etMessage.text?.append(((this@ChatFragment.activity as MainActivity).resultReadImage))
         }
     }
 
