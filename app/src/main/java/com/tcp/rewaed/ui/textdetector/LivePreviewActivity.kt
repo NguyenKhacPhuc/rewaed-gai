@@ -10,6 +10,8 @@ import android.widget.AdapterView.OnItemSelectedListener
 import android.widget.ArrayAdapter
 import android.widget.CompoundButton
 import android.widget.ImageView
+import android.widget.Spinner
+import android.widget.ToggleButton
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.common.annotation.KeepName
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
@@ -27,12 +29,15 @@ class LivePreviewActivity :
     private var preview: CameraSourcePreview? = null
     private var graphicOverlay: GraphicOverlay? = null
     private var selectedModel = TEXT_RECOGNITION_LATIN
-    private lateinit var imageProcessor: TextRecognitionProcessor
+    private var receiveText: String = ""
+    private fun receiveText(text: String) {
+        this.receiveText = text
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Timber.tag(TAG).d("onCreate")
         setContentView(R.layout.activity_vision_live_preview)
-        val captureButton = findViewById<ImageView>(R.id.takePictureIcon)
+
         preview = findViewById(R.id.preview_view)
         if (preview == null) {
             Timber.tag(TAG).d("Preview is null")
@@ -52,14 +57,25 @@ class LivePreviewActivity :
         // Drop down layout style - list view with radio button
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         // attaching data adapter to spinner
-        createCameraSource(selectedModel)
-        captureButton.setOnClickListener {
+
+        val settingsButton = findViewById<ImageView>(R.id.settings_button)
+        settingsButton.setOnClickListener {
+            val intent = Intent(applicationContext, SettingsActivity::class.java)
+            intent.putExtra(
+                SettingsActivity.EXTRA_LAUNCH_SOURCE,
+                SettingsActivity.LaunchSource.LIVE_PREVIEW
+            )
+            startActivity(intent)
+        }
+        val liveBtn = findViewById<ImageView>(R.id.liveCaptureBtn)
+        liveBtn.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             intent.putExtra(TextRecognitionProcessor.IS_FROM_TEXT_REG, true)
-            intent.putExtra(TextRecognitionProcessor.TEXT_REG_VALUE, imageProcessor.result)
+            intent.putExtra(TextRecognitionProcessor.TEXT_REG_VALUE, receiveText)
             startActivity(intent)
         }
+        createCameraSource(selectedModel)
     }
 
     @Synchronized
@@ -96,9 +112,9 @@ class LivePreviewActivity :
             cameraSource = CameraSource(this, graphicOverlay)
         }
         Timber.tag(TAG).i("Using on-device Text recognition Processor for Latin and Latin")
-        imageProcessor = TextRecognitionProcessor(this, TextRecognizerOptions.Builder().build(), true)
-
-        cameraSource!!.setMachineLearningFrameProcessor(imageProcessor)
+        cameraSource!!.setMachineLearningFrameProcessor(
+            TextRecognitionProcessor(this, TextRecognizerOptions.Builder().build(), true, ::receiveText)
+        )
 
     }
 
