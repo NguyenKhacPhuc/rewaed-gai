@@ -45,7 +45,6 @@ class TextRecognitionProcessor(
       )
     )
     val intent = Intent(context, MainActivity::class.java)
-    Log.d("#PhucNK1 Text", text.text)
     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
     intent.putExtra(IS_FROM_TEXT_REG, true)
     intent.putExtra(TEXT_REG_VALUE, text.text)
