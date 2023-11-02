@@ -9,7 +9,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.text.Editable
 import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
@@ -22,7 +21,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.tcp.rewaed.R
 import com.tcp.rewaed.data.models.ChatPostBody
@@ -31,7 +29,6 @@ import com.tcp.rewaed.ui.activities.MainActivity
 import com.tcp.rewaed.ui.adapters.ChatListAdapter
 import com.tcp.rewaed.ui.base.BaseFragment
 import com.tcp.rewaed.ui.textdetector.ChooserActivity
-import com.tcp.rewaed.ui.textdetector.TextRecognitionProcessor
 import com.tcp.rewaed.ui.viewmodels.ChatViewModel
 import com.tcp.rewaed.utils.*
 import dagger.hilt.android.AndroidEntryPoint
@@ -43,6 +40,7 @@ class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>(),
 
     private var textToSpeech: TextToSpeech? = null
     private var isNeedToSpeakAnswer: Boolean = false
+    private var isOpenFromService: Boolean = false
 
     companion object {
         private const val PERMISSION_REQUESTS = 1
@@ -80,6 +78,11 @@ class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>(),
                     mViewBinding.imgStopSpeaking.visibility = View.INVISIBLE
                     mViewBinding.animationView.pauseAnimation()
                 }
+                if (isOpenFromService) {
+                    activity?.runOnUiThread {
+                        mViewBinding.fabVoice.performClick()
+                    }
+                }
             }
 
             override fun onError(utteranceId: String?) {
@@ -91,6 +94,14 @@ class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>(),
             SharedPref.getStringPref(requireContext(), SharedPref.KEY_TOKEN_LENGTH).toInt()
         chatListAdapter.addItems(mViewModel.chatMessageList)
         allowOverlayPermission()
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        arguments?.let { bundle ->
+            val dataPassed = bundle.getBoolean("open_by_service")
+            isOpenFromService = dataPassed
+        }
     }
 
     override fun getViewBinding(
@@ -322,6 +333,9 @@ class ChatFragment : BaseFragment<ChatViewModel, FragmentChatBinding>(),
             val res = textToSpeech?.setLanguage(Locale.ENGLISH)
             if (res == TextToSpeech.LANG_NOT_SUPPORTED || res == TextToSpeech.LANG_MISSING_DATA) {
                 Log.e("TTS", "language not supported!")
+            }
+            if (isOpenFromService) {
+                convertTextToSpeech("Hi, How may I assist you today")
             }
         } else {
             Log.e("TTS", "TTS Failed")

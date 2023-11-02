@@ -7,10 +7,12 @@
         android:name="android.hardware.camera"
         android:required="false" />
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
     <!-- Android 11: https://developer.android.com/preview/privacy/package-visibility -->
     <queries>
@@ -43,6 +45,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AnywhereGPT"
         tools:targetApi="31">
+
+        <service android:name=".service.WakeWordDetectionService" android:exported="false" />
 
         <activity
             android:name="com.tcp.rewaed.ui.activities.MainActivity"
