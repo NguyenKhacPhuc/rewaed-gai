@@ -27,9 +27,7 @@ class LivePreviewActivity :
     private var preview: CameraSourcePreview? = null
     private var graphicOverlay: GraphicOverlay? = null
     private var selectedModel = TEXT_RECOGNITION_LATIN
-    private val imageProcessor: TextRecognitionProcessor by lazy {
-        TextRecognitionProcessor(this, TextRecognizerOptions.Builder().build(), true)
-    }
+    private lateinit var imageProcessor: TextRecognitionProcessor
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Timber.tag(TAG).d("onCreate")
@@ -98,6 +96,8 @@ class LivePreviewActivity :
             cameraSource = CameraSource(this, graphicOverlay)
         }
         Timber.tag(TAG).i("Using on-device Text recognition Processor for Latin and Latin")
+        imageProcessor = TextRecognitionProcessor(this, TextRecognizerOptions.Builder().build(), true)
+
         cameraSource!!.setMachineLearningFrameProcessor(imageProcessor)
 
     }
