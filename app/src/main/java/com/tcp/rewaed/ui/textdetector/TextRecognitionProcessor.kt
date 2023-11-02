@@ -15,14 +15,15 @@ import timber.log.Timber
 /** Processor for the text detector demo. */
 class TextRecognitionProcessor(
   private val context: Context,
-  textRecognizerOptions: TextRecognizerOptionsInterface
+  textRecognizerOptions: TextRecognizerOptionsInterface,
+  private val isLivePreview: Boolean = false
 ) : VisionProcessorBase<Text>(context) {
   private val textRecognizer: TextRecognizer = TextRecognition.getClient(textRecognizerOptions)
   private val shouldGroupRecognizedTextInBlocks: Boolean =
     PreferenceUtils.shouldGroupRecognizedTextInBlocks(context)
   private val showLanguageTag: Boolean = PreferenceUtils.showLanguageTag(context)
   private val showConfidence: Boolean = PreferenceUtils.shouldShowTextConfidence(context)
-
+  var result: String = ""
   override fun stop() {
     super.stop()
     textRecognizer.close()
@@ -44,7 +45,8 @@ class TextRecognitionProcessor(
         showConfidence
       )
     )
-    if (text.text.isNotEmpty()) {
+    result = text.text
+    if (text.text.isNotEmpty() && !isLivePreview) {
       val intent = Intent(context, MainActivity::class.java)
       intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
       intent.putExtra(IS_FROM_TEXT_REG, true)

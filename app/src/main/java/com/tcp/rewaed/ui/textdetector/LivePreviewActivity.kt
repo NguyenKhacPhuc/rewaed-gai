@@ -4,28 +4,17 @@ package com.tcp.rewaed.ui.textdetector
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.AdapterView.OnItemSelectedListener
 import android.widget.ArrayAdapter
 import android.widget.CompoundButton
 import android.widget.ImageView
-import android.widget.Spinner
-import android.widget.Toast
-import android.widget.ToggleButton
+import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.common.annotation.KeepName
-import com.google.mlkit.common.model.LocalModel
-import com.google.mlkit.vision.barcode.ZoomSuggestionOptions.ZoomCallback
-import com.google.mlkit.vision.label.custom.CustomImageLabelerOptions
-import com.google.mlkit.vision.label.defaults.ImageLabelerOptions
-import com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
-import com.google.mlkit.vision.text.devanagari.DevanagariTextRecognizerOptions
-import com.google.mlkit.vision.text.japanese.JapaneseTextRecognizerOptions
-import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.tcp.rewaed.R
+import com.tcp.rewaed.ui.activities.MainActivity
 import java.io.IOException
 import timber.log.Timber
 
@@ -38,12 +27,14 @@ class LivePreviewActivity :
     private var preview: CameraSourcePreview? = null
     private var graphicOverlay: GraphicOverlay? = null
     private var selectedModel = TEXT_RECOGNITION_LATIN
-
+    private val imageProcessor: TextRecognitionProcessor by lazy {
+        TextRecognitionProcessor(this, TextRecognizerOptions.Builder().build())
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Timber.tag(TAG).d("onCreate")
         setContentView(R.layout.activity_vision_live_preview)
-
+        val captureButton = findViewById<ImageView>(R.id.takePictureIcon)
         preview = findViewById(R.id.preview_view)
         if (preview == null) {
             Timber.tag(TAG).d("Preview is null")
@@ -54,7 +45,6 @@ class LivePreviewActivity :
             Timber.tag(TAG).d("graphicOverlay is null")
         }
 
-        val spinner = findViewById<Spinner>(R.id.spinner)
         val options: MutableList<String> = ArrayList()
         options.add(TEXT_RECOGNITION_LATIN)
 
@@ -64,23 +54,14 @@ class LivePreviewActivity :
         // Drop down layout style - list view with radio button
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         // attaching data adapter to spinner
-        spinner.adapter = dataAdapter
-        spinner.onItemSelectedListener = this
-
-        val facingSwitch = findViewById<ToggleButton>(R.id.facing_switch)
-        facingSwitch.setOnCheckedChangeListener(this)
-
-        val settingsButton = findViewById<ImageView>(R.id.settings_button)
-        settingsButton.setOnClickListener {
-            val intent = Intent(applicationContext, SettingsActivity::class.java)
-            intent.putExtra(
-                SettingsActivity.EXTRA_LAUNCH_SOURCE,
-                SettingsActivity.LaunchSource.LIVE_PREVIEW
-            )
+        createCameraSource(selectedModel)
+        captureButton.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            intent.putExtra(TextRecognitionProcessor.IS_FROM_TEXT_REG, true)
+            intent.putExtra(TextRecognitionProcessor.TEXT_REG_VALUE, imageProcessor.result)
             startActivity(intent)
         }
-
-        createCameraSource(selectedModel)
     }
 
     @Synchronized
@@ -117,9 +98,7 @@ class LivePreviewActivity :
             cameraSource = CameraSource(this, graphicOverlay)
         }
         Timber.tag(TAG).i("Using on-device Text recognition Processor for Latin and Latin")
-        cameraSource!!.setMachineLearningFrameProcessor(
-            TextRecognitionProcessor(this, TextRecognizerOptions.Builder().build())
-        )
+        cameraSource!!.setMachineLearningFrameProcessor(imageProcessor)
 
     }
 
