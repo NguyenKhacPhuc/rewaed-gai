@@ -78,7 +78,7 @@ class ChatListAdapter(private val mViewModel: ChatViewModel) :
         @SuppressLint("SetTextI18n")
         fun bindItems(message: ChatPostBody.Message, itemPosition: Int) {
             binding.apply {
-                tvMessageSent.text = message.content.substringAfterLast("\n")
+                tvMessageSent.text = message.content
                 tvMessageSent.setOnLongClickListener {
                     it.context.copyTextToClipboard(tvMessageSent.text.toString())
                     true

@@ -56,8 +56,11 @@ class ChooserActivity :
         view = inflater.inflate(android.R.layout.simple_list_item_2, null)
       }
 
-      (view!!.findViewById<View>(android.R.id.text1) as TextView).text =
-        classes[position].simpleName
+      (view!!.findViewById<View>(android.R.id.text1) as TextView).text = if (position == 0) {
+        "Live Preview"
+      } else {
+        "Image"
+      }
       descriptionIds?.let {
         (view.findViewById<View>(android.R.id.text2) as TextView).setText(it[position])
       }
@@ -75,22 +78,12 @@ class ChooserActivity :
     private val CLASSES =
       arrayOf<Class<*>>(
         LivePreviewActivity::class.java,
-        StillImageActivity::class.java,
-        CameraXLivePreviewActivity::class.java,
-        CameraXSourceDemoActivity::class.java
+        StillImageActivity::class.java
       )
     private val DESCRIPTION_IDS =
-      if (VERSION.SDK_INT < VERSION_CODES.LOLLIPOP)
-        intArrayOf(
-          R.string.desc_camera_source_activity,
-          R.string.desc_still_image_activity,
-        )
-      else
-        intArrayOf(
-          R.string.desc_camera_source_activity,
-          R.string.desc_still_image_activity,
-          R.string.desc_camerax_live_preview_activity,
-          R.string.desc_cameraxsource_demo_activity
-        )
+      intArrayOf(
+        R.string.desc_camera_source_activity,
+        R.string.desc_still_image_activity
+      )
   }
 }
