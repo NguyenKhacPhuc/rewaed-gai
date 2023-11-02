@@ -67,7 +67,7 @@ class WakeWordDetectionService : Service() {
             porcupineManager = PorcupineManager.Builder()
                 .setKeyword(Porcupine.BuiltInKeyword.JARVIS)
                 .setAccessKey("pB6oSgDp+ATL1KXQ4v2jT9W9V6tpL00vnAnWdAHs74s4dpMeLspOfw==")
-                .setSensitivity(0.7f)
+                .setSensitivity(0.9f)
                 .build(applicationContext, keywordCallback)
             porcupineManager.start()
         } catch (e: PorcupineException) {
